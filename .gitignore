@@ -1,4 +1,6 @@
-  
+# Debug folder
+Debug/
+
 # Prerequisites
 *.d
 
