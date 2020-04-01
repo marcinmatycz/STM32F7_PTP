@@ -60,17 +60,17 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     /* USART1 clock enable */
     __HAL_RCC_USART1_CLK_ENABLE();
   
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
     /**USART1 GPIO Configuration    
-    PB7     ------> USART1_RX
-    PB6     ------> USART1_TX 
+    PA10     ------> USART1_RX
+    PA9     ------> USART1_TX 
     */
     GPIO_InitStruct.Pin = USART1_RX_Pin|USART1_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* USART1 interrupt Init */
     HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
@@ -93,10 +93,10 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     __HAL_RCC_USART1_CLK_DISABLE();
   
     /**USART1 GPIO Configuration    
-    PB7     ------> USART1_RX
-    PB6     ------> USART1_TX 
+    PA10     ------> USART1_RX
+    PA9     ------> USART1_TX 
     */
-    HAL_GPIO_DeInit(GPIOB, USART1_RX_Pin|USART1_TX_Pin);
+    HAL_GPIO_DeInit(GPIOA, USART1_RX_Pin|USART1_TX_Pin);
 
     /* USART1 interrupt Deinit */
     HAL_NVIC_DisableIRQ(USART1_IRQn);
