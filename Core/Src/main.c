@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "eth.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -52,11 +53,15 @@
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+ETH_DMADescTypeDef  DMATxDscrTab[ETH_TXBUFNB];
+ETH_DMADescTypeDef  DMARxDscrTab[ETH_RXBUFNB];
+uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
+__IO uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE];
 /* USER CODE END 0 */
 
 /**
@@ -87,19 +92,87 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_ETH_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   TOP_Setup();
-  HAL_UART_Transmit(&huart1, "Eluwina, świecie!\n", 20, 1000);
+  char* message = "This message was send from STM32F769 Discovery Board!\n";
+  for(int i = 0; i < 6; i++)
+	  Tx_Buff[0][i] = 0xFF;
 
-  TOP_Loop();
+  for(int i = 6; i < 12; i++)
+  	  Tx_Buff[0][i] = 0xAA;
+
+  Tx_Buff[0][12] = 0x05;
+  Tx_Buff[0][13] = 0xDC;
+  int j = 0;
+  for(int i = 14; i < 14 + 55; i++)
+  {
+  	  Tx_Buff[0][i] = message[j];
+  	  j++;
+  }
+
+
+  HAL_ETH_DMATxDescListInit(&heth, DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
+  HAL_ETH_DMARxDescListInit(&heth, DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
+  HAL_ETH_Start(&heth);
+
+  HAL_UART_Transmit(&huart1, "Eluwina, świecie!\r\n", 20, 1000);
+  HAL_UART_Transmit(&huart1, Tx_Buff[0], 1500, 1000);
+
+  HAL_ETH_TransmitFrame(&heth, 1500);
+  //TOP_Loop();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  char *s[3];
   while (1)
   {
     /* USER CODE END WHILE */
+	  if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)) //& ETH_MACDBGR_RFRCS)
+	  //HAL_GPIO_WritePin(GPIOJ, LED_RED_Pin, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOJ, LED_GREEN_Pin, GPIO_PIN_SET);
+	  if(heth.Instance->MACDBGR) //& ETH_MACDBGR_RFRCS)
+		  HAL_GPIO_WritePin(GPIOJ, LED_RED_Pin, GPIO_PIN_SET);
+
+
+	  if (HAL_ETH_GetReceivedFrame(&heth) == HAL_OK)
+	  {
+		  HAL_UART_Transmit(&huart1, "Destination address: ", 21, 1000);
+		  for(int i = 0; i < 6; i++)
+		  {
+			snprintf(s, 5, "%d ", Rx_Buff[0][i]);
+			HAL_UART_Transmit(&huart1, s, 5, 1000);
+		  }
+		  HAL_UART_Transmit(&huart1, "\n\r", 2, 1000);
+
+		  HAL_UART_Transmit(&huart1, "Source address: ", 16, 1000);
+		  for(int i = 6; i < 12; i++)
+		  {
+			snprintf(s, 5, "%d ", Rx_Buff[0][i]);
+			HAL_UART_Transmit(&huart1, s, 5, 1000);
+		  }
+		  HAL_UART_Transmit(&huart1, "\n\r", 2, 1000);
+
+		  HAL_UART_Transmit(&huart1, "Data length: ", 13, 1000);
+
+		  snprintf(s, 7, "%d ", (uint16_t)(Rx_Buff[0][12] << 8) | (uint16_t)(Rx_Buff[0][13]));
+		  HAL_UART_Transmit(&huart1, s, 7, 1000);
+
+		  HAL_UART_Transmit(&huart1, "\n\r", 2, 1000);
+
+		  HAL_UART_Transmit(&huart1, "Data: ", 6, 1000);
+
+		  for(int i =14 ; i <ETH_RX_BUF_SIZE ; i++)
+		  {
+			  HAL_UART_Transmit(&huart1, &Rx_Buff[0][i], 1, 1000);
+		  }
+		  HAL_UART_Transmit(&huart1, "\n\r", 2, 1000);
+
+		  while(1);
+	  }
+
 
     /* USER CODE BEGIN 3 */
 
@@ -120,14 +193,25 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage 
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
   /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 216;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Activate the Over-Drive mode 
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -135,12 +219,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
   {
     Error_Handler();
   }
@@ -186,3 +270,4 @@ void assert_failed(uint8_t *file, uint32_t line)
 #endif /* USE_FULL_ASSERT */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
