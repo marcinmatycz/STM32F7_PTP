@@ -32,7 +32,7 @@ void MX_ETH_Init(void)
 
   heth.Instance = ETH;
   heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
-  heth.Init.PhyAddress = 0;//LAN8742A_PHY_ADDRESS;
+  heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
   heth.Init.MACAddr[0] =   0x00;
   heth.Init.MACAddr[1] =   0x80;
   heth.Init.MACAddr[2] =   0xE1;
