@@ -58,10 +58,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-ETH_DMADescTypeDef  DMATxDscrTab[ETH_TXBUFNB];
-ETH_DMADescTypeDef  DMARxDscrTab[ETH_RXBUFNB];
-uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
-__IO uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE];
+
 /* USER CODE END 0 */
 
 /**
@@ -95,83 +92,18 @@ int main(void)
   MX_ETH_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  TOP_Setup();
-  char* message = "This message was send from STM32F769 Discovery Board!\n";
-  for(int i = 0; i < 6; i++)
-	  Tx_Buff[0][i] = 0xFF;
+  //TOP_Setup();
 
-  for(int i = 6; i < 12; i++)
-  	  Tx_Buff[0][i] = 0xAA;
-
-  Tx_Buff[0][12] = 0x05;
-  Tx_Buff[0][13] = 0xDC;
-  int j = 0;
-  for(int i = 14; i < 14 + 55; i++)
-  {
-  	  Tx_Buff[0][i] = message[j];
-  	  j++;
-  }
-
-
-  HAL_ETH_DMATxDescListInit(&heth, DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
-  HAL_ETH_DMARxDescListInit(&heth, DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
-  HAL_ETH_Start(&heth);
-
-  HAL_UART_Transmit(&huart1, "Eluwina, świecie!\r\n", 20, 1000);
-  HAL_UART_Transmit(&huart1, Tx_Buff[0], 1500, 1000);
-
-  HAL_ETH_TransmitFrame(&heth, 1500);
   //TOP_Loop();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  char *s[3];
+
   while (1)
   {
     /* USER CODE END WHILE */
-	  if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)) //& ETH_MACDBGR_RFRCS)
-	  //HAL_GPIO_WritePin(GPIOJ, LED_RED_Pin, GPIO_PIN_RESET);
-		  HAL_GPIO_WritePin(GPIOJ, LED_GREEN_Pin, GPIO_PIN_SET);
-	  if(heth.Instance->MACDBGR) //& ETH_MACDBGR_RFRCS)
-		  HAL_GPIO_WritePin(GPIOJ, LED_RED_Pin, GPIO_PIN_SET);
 
-
-	  if (HAL_ETH_GetReceivedFrame(&heth) == HAL_OK)
-	  {
-		  HAL_UART_Transmit(&huart1, "Destination address: ", 21, 1000);
-		  for(int i = 0; i < 6; i++)
-		  {
-			snprintf(s, 5, "%d ", Rx_Buff[0][i]);
-			HAL_UART_Transmit(&huart1, s, 5, 1000);
-		  }
-		  HAL_UART_Transmit(&huart1, "\n\r", 2, 1000);
-
-		  HAL_UART_Transmit(&huart1, "Source address: ", 16, 1000);
-		  for(int i = 6; i < 12; i++)
-		  {
-			snprintf(s, 5, "%d ", Rx_Buff[0][i]);
-			HAL_UART_Transmit(&huart1, s, 5, 1000);
-		  }
-		  HAL_UART_Transmit(&huart1, "\n\r", 2, 1000);
-
-		  HAL_UART_Transmit(&huart1, "Data length: ", 13, 1000);
-
-		  snprintf(s, 7, "%d ", (uint16_t)(Rx_Buff[0][12] << 8) | (uint16_t)(Rx_Buff[0][13]));
-		  HAL_UART_Transmit(&huart1, s, 7, 1000);
-
-		  HAL_UART_Transmit(&huart1, "\n\r", 2, 1000);
-
-		  HAL_UART_Transmit(&huart1, "Data: ", 6, 1000);
-
-		  for(int i =14 ; i <ETH_RX_BUF_SIZE ; i++)
-		  {
-			  HAL_UART_Transmit(&huart1, &Rx_Buff[0][i], 1, 1000);
-		  }
-		  HAL_UART_Transmit(&huart1, "\n\r", 2, 1000);
-
-		  while(1);
-	  }
 
 
     /* USER CODE BEGIN 3 */
