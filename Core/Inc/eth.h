@@ -34,11 +34,26 @@ extern ETH_HandleTypeDef heth;
 
 /* USER CODE BEGIN Private defines */
 
+typedef struct
+{
+
+	uint8_t* destination_address;
+	uint8_t* source_address;
+	uint8_t* length_type;
+	uint8_t* data;
+
+} Frame;
+
+
 /* USER CODE END Private defines */
 
 void MX_ETH_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+void ETH_InitDescriptors(void);
+void ETH_Start(void);
+bool ETH_ReceiveFrame(Frame *frame);
+void ETH_TransmitFrame(Frame *frame);
 
 /* USER CODE END Prototypes */
 

@@ -22,6 +22,12 @@
 
 /* USER CODE BEGIN 0 */
 
+ETH_DMADescTypeDef  DMATxDscrTab[ETH_TXBUFNB];
+ETH_DMADescTypeDef  DMARxDscrTab[ETH_RXBUFNB];
+
+uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
+uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE];
+
 /* USER CODE END 0 */
 
 ETH_HandleTypeDef heth;
@@ -32,7 +38,7 @@ void MX_ETH_Init(void)
 
   heth.Instance = ETH;
   heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
-  heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
+  heth.Init.PhyAddress = 0;//LAN8742A_PHY_ADDRESS;
   heth.Init.MACAddr[0] =   0x00;
   heth.Init.MACAddr[1] =   0x80;
   heth.Init.MACAddr[2] =   0xE1;
@@ -142,6 +148,60 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* ethHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+
+void ETH_InitDescriptors(void)
+{
+	HAL_ETH_DMATxDescListInit(&heth, DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
+	HAL_ETH_DMARxDescListInit(&heth, DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
+}
+
+void ETH_Start(void)
+{
+	HAL_ETH_Start(&heth);
+}
+
+bool ETH_ReceiveFrame(Frame *frame)
+{
+
+	if (HAL_ETH_GetReceivedFrame(&heth) == HAL_OK)
+	{
+		frame->destination_address = &Rx_Buff[0][0];
+		frame->source_address = &Rx_Buff[0][6];
+		frame->length_type = &Rx_Buff[0][12];
+		frame->data = &Rx_Buff[0][14];
+
+		//  			FROM LWIP, NEEDS VERIFICATION
+		/* Release descriptors to DMA */
+		/* Set Own bit in Rx descriptors: gives the buffers back to DMA */
+		for (int i=0; i< heth.RxFrameInfos.SegCount; i++)
+		{
+			heth.RxFrameInfos.FSRxDesc->Status |= ETH_DMARXDESC_OWN;
+			heth.RxFrameInfos.FSRxDesc = (ETH_DMADescTypeDef *)(heth.RxFrameInfos.FSRxDesc->Buffer2NextDescAddr);
+		}
+
+		/* Clear Segment_Count */
+		heth.RxFrameInfos.SegCount =0;
+
+		/* When Rx Buffer unavailable flag is set: clear it and resume reception */
+		if ((heth.Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET)
+		{
+		/* Clear RBUS ETHERNET DMA flag */
+			heth.Instance->DMASR = ETH_DMASR_RBUS;
+		/* Resume DMA reception */
+			heth.Instance->DMARPDR = 0;
+		}
+
+		return true;
+	}
+	return false;
+}
+
+void ETH_TransmitFrame(Frame *frame)
+{
+
+
+}
+
 
 /* USER CODE END 1 */
 

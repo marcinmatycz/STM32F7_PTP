@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "top.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,13 +47,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+Frame frame = {0};
+extern UART_HandleTypeDef huart1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void PrintFrame(Frame *frame, UART_HandleTypeDef *huart);
 
 /* USER CODE END PFP */
 
@@ -92,9 +94,8 @@ int main(void)
   MX_ETH_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  //TOP_Setup();
-
-  //TOP_Loop();
+  ETH_InitDescriptors();
+  ETH_Start();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,6 +103,9 @@ int main(void)
 
   while (1)
   {
+	  if(ETH_ReceiveFrame(&frame))
+		  PrintFrame(&frame, &huart1);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -127,7 +131,7 @@ void SystemClock_Config(void)
   /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 25;
@@ -166,7 +170,47 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void PrintFrame(Frame *frame, UART_HandleTypeDef *huart)
+{
+	char s[12];
 
+
+	HAL_UART_Transmit(huart, "Destination address: ", strlen("Destination address: "), 1000);
+	for (int i = 0; i < 6; i++)
+	{
+		snprintf(s, 3, "%X", *((frame->destination_address) + i));
+		HAL_UART_Transmit(huart, s, 2, 1000);
+		HAL_UART_Transmit(huart, " ", 1, 1000);
+	}
+
+
+	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
+
+
+	HAL_UART_Transmit(huart, "Source address: ", strlen("Source address: "), 1000);
+
+	for (int i = 0; i < 6; i++)
+	{
+		snprintf(s, 3, "%X", *((frame->source_address) + i));
+		HAL_UART_Transmit(huart, s, 2, 1000);
+		HAL_UART_Transmit(huart, " ", 1, 1000);
+	}
+	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
+
+
+	HAL_UART_Transmit(huart, "Length/type: ", strlen("Length/type: "), 1000);
+	for (int i = 0; i < 2; i++)
+	{
+		snprintf(s, 3, "%X", *((frame->length_type) + i));
+		HAL_UART_Transmit(huart, s, 2, 1000);
+		HAL_UART_Transmit(huart, " ", 1, 1000);
+	}
+	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
+
+	HAL_UART_Transmit(huart, "Data: ", strlen("Data: "), 1000);
+	HAL_UART_Transmit(huart, frame->data, 1500, 1000);
+	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
+}
 /* USER CODE END 4 */
 
 /**
