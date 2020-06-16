@@ -27,4 +27,3 @@
                         PUBLIC INTERFACE DECLARATION
  *****************************************************************************/
 void ARP_Respond(Frame *frame);
-void ARP_Print(Frame *frame);

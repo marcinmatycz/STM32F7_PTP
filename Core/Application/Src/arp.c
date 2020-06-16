@@ -90,46 +90,6 @@ void ARP_Respond(Frame *frame)
 	ETH_TransmitFrame(frame);
 }
 
-
-void ARP_Print(Frame *frame)
-{
-	char s[12];
-
-
-	HAL_UART_Transmit(&huart1, "Sender hardware address: ", strlen("Sender hardware address: "), 1000);
-	for (int i = 8; i < 8+6; i++)
-	{
-		snprintf(s, 4, "%X", *((frame->data) + i));
-		HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
-		HAL_UART_Transmit(&huart1, ".", 1, 1000);
-	}
-
-
-	HAL_UART_Transmit(&huart1, "\r\n", 2, 1000);
-
-
-	HAL_UART_Transmit(&huart1, "Sender protocol address: ", strlen("Sender protocol address: "), 1000);
-
-	for (int i = 14; i < 14+4; i++)
-	{
-		snprintf(s, 4, "%d", *((frame->data) + i));
-		HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
-		HAL_UART_Transmit(&huart1, ".", 1, 1000);
-	}
-	HAL_UART_Transmit(&huart1, "\r\n", 2, 1000);
-
-
-	HAL_UART_Transmit(&huart1, "Target protocol address: ", strlen("Target protocol address: "), 1000);
-
-	for (int i = 24; i < 24+4; i++)
-	{
-		snprintf(s, 4, "%d", *((frame->data) + i));
-		HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
-		HAL_UART_Transmit(&huart1, ".", 1, 1000);
-	}
-	HAL_UART_Transmit(&huart1, "\r\n", 2, 1000);
-}
-
 /*****************************************************************************
                        PRIVATE FUNCTION IMPLEMENTATION
  *****************************************************************************/
