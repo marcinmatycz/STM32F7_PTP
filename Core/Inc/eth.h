@@ -30,7 +30,7 @@
 
 /* USER CODE END Includes */
 
-extern ETH_HandleTypeDef heth;
+//extern ETH_HandleTypeDef heth;
 
 /* USER CODE BEGIN Private defines */
 
@@ -39,6 +39,7 @@ typedef struct
 
 	uint8_t* destination_address;
 	uint8_t* source_address;
+	//uint8_t* tag;
 	uint8_t* length_type;
 	uint8_t* data;
 
@@ -54,6 +55,8 @@ void ETH_InitDescriptors(void);
 void ETH_Start(void);
 bool ETH_ReceiveFrame(Frame *frame);
 void ETH_TransmitFrame(Frame *frame);
+void ETH_PutInTxBuffer(uint8_t *data, size_t length); // TODO to reconsider this function and whole idea of buffers encapsulation
+void ETH_GetMACAddress(uint8_t *address);
 
 /* USER CODE END Prototypes */
 

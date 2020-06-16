@@ -47,7 +47,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-Frame frame = {0};
+
 extern UART_HandleTypeDef huart1;
 /* USER CODE END PV */
 
@@ -94,17 +94,17 @@ int main(void)
   MX_ETH_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  ETH_InitDescriptors();
-  ETH_Start();
+  TOP_Setup();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  TOP_Loop();
 
   while (1)
   {
-	  if(ETH_ReceiveFrame(&frame))
-		  PrintFrame(&frame, &huart1);
+
 
     /* USER CODE END WHILE */
 
@@ -211,6 +211,55 @@ void PrintFrame(Frame *frame, UART_HandleTypeDef *huart)
 	HAL_UART_Transmit(huart, frame->data, 1500, 1000);
 	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
 }
+
+
+
+
+void PrintFrameIP(Frame *frame, UART_HandleTypeDef *huart)
+{
+	char s[12];
+
+
+	HAL_UART_Transmit(huart, "Destination address: ", strlen("Destination address: "), 1000);
+	for (int i = 0; i < 6; i++)
+	{
+		snprintf(s, 3, "%X", *((frame->destination_address) + i));
+		HAL_UART_Transmit(huart, s, 2, 1000);
+		HAL_UART_Transmit(huart, " ", 1, 1000);
+	}
+
+
+	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
+
+
+	HAL_UART_Transmit(huart, "Source address: ", strlen("Source address: "), 1000);
+
+	for (int i = 0; i < 6; i++)
+	{
+		snprintf(s, 3, "%X", *((frame->source_address) + i));
+		HAL_UART_Transmit(huart, s, 2, 1000);
+		HAL_UART_Transmit(huart, " ", 1, 1000);
+	}
+	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
+
+
+	HAL_UART_Transmit(huart, "Length/type: ", strlen("Length/type: "), 1000);
+	for (int i = 0; i < 2; i++)
+	{
+		snprintf(s, 3, "%X", *((frame->length_type) + i));
+		HAL_UART_Transmit(huart, s, 2, 1000);
+		HAL_UART_Transmit(huart, " ", 1, 1000);
+	}
+	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
+
+	HAL_UART_Transmit(huart, "Data: ", strlen("Data: "), 1000);
+	HAL_UART_Transmit(huart, frame->data, 1500, 1000);
+	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
+}
+
+
+
+
 /* USER CODE END 4 */
 
 /**

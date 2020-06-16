@@ -167,10 +167,11 @@ bool ETH_ReceiveFrame(Frame *frame)
 	{
 		frame->destination_address = &Rx_Buff[0][0];
 		frame->source_address = &Rx_Buff[0][6];
+		//frame->tag = &Rx_Buff[0][12];
 		frame->length_type = &Rx_Buff[0][12];
 		frame->data = &Rx_Buff[0][14];
 
-		//  			FROM LWIP, NEEDS VERIFICATION
+		//  TODO 			FROM LWIP, NEEDS VERIFICATION
 		/* Release descriptors to DMA */
 		/* Set Own bit in Rx descriptors: gives the buffers back to DMA */
 		for (int i=0; i< heth.RxFrameInfos.SegCount; i++)
@@ -198,9 +199,22 @@ bool ETH_ReceiveFrame(Frame *frame)
 
 void ETH_TransmitFrame(Frame *frame)
 {
-
-
+	HAL_ETH_TransmitFrame(&heth, 1500);
 }
+
+
+void ETH_PutInTxBuffer(uint8_t *data, size_t length)
+{
+	for(int i = 0; i < length; i++)
+		Tx_Buff[0][i] = data[i];
+}
+
+void ETH_GetMACAddress(uint8_t *address)
+{
+	for (int i = 0; i < 6; i++)
+		address[i] = heth.Init.MACAddr[i];
+}
+
 
 
 /* USER CODE END 1 */
