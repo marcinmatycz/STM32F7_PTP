@@ -197,16 +197,26 @@ bool ETH_ReceiveFrame(Frame *frame)
 	return false;
 }
 
-void ETH_TransmitFrame(Frame *frame)
+void ETH_TransmitFrame(Frame *frame, size_t length)
 {
-	HAL_ETH_TransmitFrame(&heth, 1500);
+
+
+	ETH_PutInTxBuffer(frame->destination_address, 6, 0);
+	ETH_PutInTxBuffer(frame->source_address, 6, 6);
+	ETH_PutInTxBuffer(frame->length_type, 2, 12);
+	ETH_PutInTxBuffer(frame->data, (length - 6 - 6 - 2), 14);
+
+
+
+	HAL_ETH_TransmitFrame(&heth, length);
+
 }
 
 
-void ETH_PutInTxBuffer(uint8_t *data, size_t length)
+void ETH_PutInTxBuffer(uint8_t *data, size_t length, uint32_t offset)
 {
-	for(int i = 0; i < length; i++)
-		Tx_Buff[0][i] = data[i];
+	for(int i = offset; i < length + offset; i++)
+		Tx_Buff[0][i] = data[i-offset];
 }
 
 void ETH_GetMACAddress(uint8_t *address)

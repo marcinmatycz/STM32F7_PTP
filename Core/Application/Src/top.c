@@ -19,6 +19,7 @@
 #include "gpio.h"
 #include "eth.h"
 #include "arp.h"
+#include "ipv4.h"
 #include <string.h>
 /*****************************************************************************
                           PRIVATE DEFINES / MACROS
@@ -48,7 +49,6 @@ void TOP_Loop(void)
 	while(1)
 	{
 		TOP_PollForEthernetFrame();
-
 	}
 }
 
@@ -58,27 +58,29 @@ void TOP_Loop(void)
 extern UART_HandleTypeDef huart1;
 void TOP_PollForEthernetFrame(void)
 {
-	char s[12];
 
 	Frame E_frame = {0};
+	IPFrame ip_frame = {0};
+
 	if(ETH_ReceiveFrame(&E_frame))
 	{
-//		HAL_UART_Transmit(&huart1, "Ethertype: ", strlen("Ethertype: "), 1000);
-//		for (int i = 0; i < 2; i++)
-//		{
-//			snprintf(s, 3, "%X", E_frame.length_type[i]);
-//			HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
-//			HAL_UART_Transmit(&huart1, " ", 1, 1000);
-//		}
-//		HAL_UART_Transmit(&huart1, "\r\n", 2, 1000);
-
+		// ARP request
 		if(E_frame.length_type[0] == 0x08 && E_frame.length_type[1] == 0x06 )
 		{
 			ARP_Respond(&E_frame);
-			//ETH_TransmitFrame(&E_frame);
+		}
+
+		// IP frame
+		if(E_frame.length_type[0] == 0x08 && E_frame.length_type[1] == 0x00 )
+		{
+			IP_ReadIPHeader(&E_frame, &ip_frame);
+			// ICMP Request
+			if(*(ip_frame.protocol) == 1)
+			{
+				IP_SendEchoReply(&E_frame, &ip_frame);
+			}
 
 		}
 	}
-		//IP_ReadIPHeader(&E_frame);
 
 }
