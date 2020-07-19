@@ -58,7 +58,7 @@ void SystemClock_Config(void);
 void PrintFrame(Frame *frame, UART_HandleTypeDef *huart);
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_PIN)
 {
-	HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+	TOP_SetTransmitFlag();
 }
 
 

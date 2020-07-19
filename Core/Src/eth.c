@@ -28,8 +28,6 @@ ETH_DMADescTypeDef  DMARxDscrTab[ETH_RXBUFNB];
 uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
 uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE];
 
-ETH_HandleTypeDef heth;
-
 /* USER CODE END 0 */
 
 ETH_HandleTypeDef heth;
@@ -200,7 +198,8 @@ bool ETH_ReceiveFrame(Frame *frame)
 	return false;
 }
 
-extern UART_HandleTypeDef huart1;
+
+
 HAL_StatusTypeDef ETH_TransmitFrame(Frame *frame, size_t length)
 {
 
@@ -214,16 +213,7 @@ HAL_StatusTypeDef ETH_TransmitFrame(Frame *frame, size_t length)
 
 	while((heth.TxDesc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET);
 
-	if(HAL_ETH_TransmitFrame(&heth, length) != HAL_OK)
-	{
-		HAL_UART_Transmit(&huart1, "Frame failed\r\n", strlen("Frame failed\r\n"), 1000);
-	}
-	else
-	{
-		HAL_UART_Transmit(&huart1, "Frame ok\r\n", strlen("Frame ok\r\n"), 1000);
-	}
-
-
+	HAL_ETH_TransmitFrame(&heth, length);
 }
 
 

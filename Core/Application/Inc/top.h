@@ -28,6 +28,9 @@ void TOP_Setup(void);
  */
 void TOP_Loop(void);
 
+void TOP_SetTransmitFlag(void);
+
+
 
 /*****************************************************************************
                       PUBLIC STRUCTS / ENUMS / VARIABLES

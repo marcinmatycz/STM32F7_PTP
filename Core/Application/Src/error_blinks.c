@@ -30,7 +30,7 @@
 /*****************************************************************************
 	                       INTERFACE IMPLEMENTATION
  *****************************************************************************/
-void ERR_InitBlink()
+void ERR_InitBlink(void)
 {
 	for(int i = 0; i < 3; i++)
 	{
@@ -41,12 +41,12 @@ void ERR_InitBlink()
 	}
 }
 
-void ERR_LoopBlink()
+void ERR_LoopBlink(void)
 {
 
 }
 
-void ERR_ConfBlink()
+void ERR_ConfBlink(void)
 {
 	for(int i = 0; i < 2; i++)
 	{
@@ -56,6 +56,19 @@ void ERR_ConfBlink()
 		HAL_Delay(50);
 	}
 }
+
+void ERR_ErrBlink(void)
+{
+	for(int i = 0; i < 2; i++)
+	{
+		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+		HAL_Delay(50);
+		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+		HAL_Delay(50);
+	}
+}
+
+
 /*****************************************************************************
                        PRIVATE FUNCTION IMPLEMENTATION
  *****************************************************************************/

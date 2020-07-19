@@ -29,4 +29,4 @@
 void ERR_InitBlink(void);
 void ERR_LoopBlink(void);
 void ERR_ConfBlink(void);
-
+void ERR_ErrBlink(void);
