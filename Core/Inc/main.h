@@ -66,6 +66,9 @@ void Error_Handler(void);
 #define USART1_TX_GPIO_Port GPIOA
 #define LED_GREEN_Pin GPIO_PIN_5
 #define LED_GREEN_GPIO_Port GPIOJ
+#define BUTTON_BLUE_Pin GPIO_PIN_0
+#define BUTTON_BLUE_GPIO_Port GPIOA
+#define BUTTON_BLUE_EXTI_IRQn EXTI0_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

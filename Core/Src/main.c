@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "eth.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -55,6 +56,11 @@ extern UART_HandleTypeDef huart1;
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void PrintFrame(Frame *frame, UART_HandleTypeDef *huart);
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_PIN)
+{
+	HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+}
+
 
 /* USER CODE END PFP */
 
@@ -93,6 +99,7 @@ int main(void)
   MX_GPIO_Init();
   MX_ETH_Init();
   MX_USART1_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   TOP_Setup();
   /* USER CODE END 2 */
