@@ -19,7 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "eth.h"
-
+#include <string.h>
 /* USER CODE BEGIN 0 */
 
 ETH_DMADescTypeDef  DMATxDscrTab[ETH_TXBUFNB];
@@ -28,9 +28,11 @@ ETH_DMADescTypeDef  DMARxDscrTab[ETH_RXBUFNB];
 uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
 uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE];
 
+ETH_HandleTypeDef heth;
+
 /* USER CODE END 0 */
 
-ETH_HandleTypeDef heth;
+
 
 /* ETH init function */
 void MX_ETH_Init(void)
@@ -174,6 +176,7 @@ bool ETH_ReceiveFrame(Frame *frame)
 		//  TODO 			FROM LWIP, NEEDS VERIFICATION
 		/* Release descriptors to DMA */
 		/* Set Own bit in Rx descriptors: gives the buffers back to DMA */
+
 		for (int i=0; i< heth.RxFrameInfos.SegCount; i++)
 		{
 			heth.RxFrameInfos.FSRxDesc->Status |= ETH_DMARXDESC_OWN;
@@ -197,8 +200,10 @@ bool ETH_ReceiveFrame(Frame *frame)
 	return false;
 }
 
-void ETH_TransmitFrame(Frame *frame, size_t length)
+extern UART_HandleTypeDef huart1;
+HAL_StatusTypeDef ETH_TransmitFrame(Frame *frame, size_t length)
 {
+
 
 
 	ETH_PutInTxBuffer(frame->destination_address, 6, 0);
@@ -207,8 +212,17 @@ void ETH_TransmitFrame(Frame *frame, size_t length)
 	ETH_PutInTxBuffer(frame->data, (length - 6 - 6 - 2), 14);
 
 
+	while((heth.TxDesc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET);
 
-	HAL_ETH_TransmitFrame(&heth, length);
+	if(HAL_ETH_TransmitFrame(&heth, length) != HAL_OK)
+	{
+		HAL_UART_Transmit(&huart1, "Frame failed\r\n", strlen("Frame failed\r\n"), 1000);
+	}
+	else
+	{
+		HAL_UART_Transmit(&huart1, "Frame ok\r\n", strlen("Frame ok\r\n"), 1000);
+	}
+
 
 }
 

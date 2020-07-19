@@ -30,7 +30,7 @@
 
 /* USER CODE END Includes */
 
-//extern ETH_HandleTypeDef heth;
+
 
 /* USER CODE BEGIN Private defines */
 
@@ -54,7 +54,7 @@ void MX_ETH_Init(void);
 void ETH_InitDescriptors(void);
 void ETH_Start(void);
 bool ETH_ReceiveFrame(Frame *frame);
-void ETH_TransmitFrame(Frame *frame, size_t length);
+HAL_StatusTypeDef ETH_TransmitFrame(Frame *frame, size_t length);
 void ETH_PutInTxBuffer(uint8_t *data, size_t length, uint32_t offset); // TODO to reconsider this function and whole idea of buffers encapsulation
 void ETH_GetMACAddress(uint8_t *address);
 

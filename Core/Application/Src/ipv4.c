@@ -26,7 +26,7 @@
                       PRIVATE STRUCTS / ENUMS / VARIABLES
  *****************************************************************************/
 
-
+extern UART_HandleTypeDef huart1;
 
 
 /*****************************************************************************
@@ -124,24 +124,10 @@ void IP_SendEchoReply(Frame *frame, IPFrame *ipframe)
 	to_send[29] = 174;
 
 	// destination address
-	to_send[30] = 192;
-	to_send[31] = 168;
-	to_send[32] = 0;
-	to_send[33] = 173;
-
-
-	// calculate header checksum
-	uint32_t sum = 0;
-	uint16_t header_checksum;
-	for(int i = 0; i <20 ; i=i+2)
-	{
-		sum += ((uint16_t)(to_send[14+i]) << 8) | (to_send[14+i+1]);
-	}
-
-	header_checksum = sum + (sum>>16);
-	header_checksum = ~header_checksum;
-	//to_send[24] = header_checksum >> 8;
-	//to_send[25] = header_checksum;
+	to_send[30] = ipframe->source_address[0];//192;
+	to_send[31] = ipframe->source_address[1];//168;
+	to_send[32] = ipframe->source_address[2];//0;
+	to_send[33] = ipframe->source_address[3];//173;
 
 
 	// ICMP type
@@ -169,17 +155,6 @@ void IP_SendEchoReply(Frame *frame, IPFrame *ipframe)
 		to_send[i+42] = ipframe->data[8+i];
 	}
 
-	sum = 0;
-	for(int i = 0; i <totallength - 20 ; i = i+2)
-	{
-		sum += ((uint16_t)(to_send[34+i]) << 8) | (to_send[34+i+1]);
-	}
-
-	header_checksum = sum + (sum>>16);
-	header_checksum = ~header_checksum;
-	//to_send[36] = header_checksum >> 8;
-	//to_send[37] = header_checksum;
-
 
 
 	ETH_TransmitFrame(&frame_to_send, totallength+14);
@@ -189,7 +164,7 @@ void IP_SendEchoReply(Frame *frame, IPFrame *ipframe)
 /*****************************************************************************
                        PRIVATE FUNCTION IMPLEMENTATION
  *****************************************************************************/
-extern UART_HandleTypeDef huart1;
+
 
 void PrintIPHeader(IPFrame *ipframe)
 {
@@ -223,21 +198,6 @@ void PrintIPHeader(IPFrame *ipframe)
 	snprintf(s, 4, "%d", *(ipframe->protocol));
 	HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
 	HAL_UART_Transmit(&huart1, "\r\n", 2, 1000);
-
-
-
-//	HAL_UART_Transmit(huart, "Length/type: ", strlen("Length/type: "), 1000);
-//	for (int i = 0; i < 2; i++)
-//	{
-//		snprintf(s, 3, "%X", *((frame->length_type) + i));
-//		HAL_UART_Transmit(huart, s, 2, 1000);
-//		HAL_UART_Transmit(huart, " ", 1, 1000);
-//	}
-//	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
-//
-//	HAL_UART_Transmit(huart, "Data: ", strlen("Data: "), 1000);
-//	HAL_UART_Transmit(huart, frame->data, 1500, 1000);
-//	HAL_UART_Transmit(huart, "\r\n", 2, 1000);
 
 }
 
