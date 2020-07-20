@@ -37,7 +37,11 @@ bool transmit_flag = 0;
                         PRIVATE FUNCTION DECLARATION
  *****************************************************************************/
 void TOP_PollForEthernetFrame(void);
+
+
 void SendTestFrame(void);
+void PTPInit(void);
+
 
 /*****************************************************************************
 	                       INTERFACE IMPLEMENTATION
@@ -45,6 +49,7 @@ void SendTestFrame(void);
 
 void TOP_Setup(void)
 {
+	PTPInit();
 	ETH_InitDescriptors();
 	ETH_Start();
 	ERR_InitBlink();
@@ -53,6 +58,11 @@ void TOP_Setup(void)
 extern UART_HandleTypeDef huart1;
 void TOP_Loop(void)
 {
+	uint32_t low_value;
+	uint32_t high_value;
+	char s[11] = {0};
+
+
 	while(1)
 	{
 		TOP_PollForEthernetFrame();
@@ -65,6 +75,11 @@ void TOP_Loop(void)
 			transmit_flag = 0;
 		}
 
+		HAL_Delay(1000);
+		low_value = ETH->PTPTSLR;
+		snprintf(s, 11, "%d", low_value);
+		HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
+		HAL_UART_Transmit(&huart1, "\r\n", strlen("\r\n"), 1000);
 	}
 }
 
@@ -143,8 +158,6 @@ void TOP_PollForEthernetFrame(void)
 }
 
 
-
-
 void SendTestFrame(void)
 {
 	Frame frame_to_send = {0};
@@ -188,4 +201,35 @@ void SendTestFrame(void)
 	frame_to_send.data = &to_send[14];
 
 	ETH_TransmitFrame(&frame_to_send, 21);
+}
+
+void PTPInit(void)
+{
+	 // 1.
+	 SET_BIT(ETH->MACIMR, 0b1000000000);
+	 // 2.
+	 SET_BIT(ETH->PTPTSCR, 1);
+
+	 // 3.
+	 ETH->PTPSSIR = 1;
+
+	 // 4.
+	 // not using Fine correction
+
+	 // 5.
+	 while (READ_BIT(ETH->PTPTSCR, 0b100000) != 0);
+
+	 // 6.
+	 // not using Fine correction
+
+	 // 7.
+	 ETH->PTPTSLUR = 13;
+
+	 // 8.
+	 while (READ_BIT(ETH->PTPTSCR, 0b100) != 0);
+	 SET_BIT(ETH->PTPTSCR, 4);
+
+	 // 9.
+
+	 // 10.
 }
