@@ -21,6 +21,7 @@
 #include "arp.h"
 #include "ipv4.h"
 #include "error_blinks.h"
+#include "tim.h"
 #include <string.h>
 #include <stdio.h>
 /*****************************************************************************
@@ -53,6 +54,7 @@ void TOP_Setup(void)
 	ETH_InitDescriptors();
 	ETH_Start();
 	ERR_InitBlink();
+	TIM_ConnectPTP();
 }
 
 extern UART_HandleTypeDef huart1;
@@ -206,9 +208,9 @@ void SendTestFrame(void)
 void PTPInit(void)
 {
 	 // 1.
-	 SET_BIT(ETH->MACIMR, 0b1000000000);
+	 SET_BIT(ETH->MACIMR, 1<<9);
 	 // 2.
-	 SET_BIT(ETH->PTPTSCR, 1);
+	 SET_BIT(ETH->PTPTSCR, 1<<0);
 
 	 // 3.
 	 ETH->PTPSSIR = 1;
@@ -217,17 +219,17 @@ void PTPInit(void)
 	 // not using Fine correction
 
 	 // 5.
-	 while (READ_BIT(ETH->PTPTSCR, 0b100000) != 0);
+	 while (READ_BIT(ETH->PTPTSCR, 1<<5) != 0);
 
 	 // 6.
 	 // not using Fine correction
 
 	 // 7.
-	 ETH->PTPTSLUR = 13;
+	 // no starting value
 
 	 // 8.
-	 while (READ_BIT(ETH->PTPTSCR, 0b100) != 0);
-	 SET_BIT(ETH->PTPTSCR, 4);
+	 while (READ_BIT(ETH->PTPTSCR, 1<<2) != 0);
+	 SET_BIT(ETH->PTPTSCR, 1<<2);
 
 	 // 9.
 
