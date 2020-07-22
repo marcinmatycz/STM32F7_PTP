@@ -38,7 +38,7 @@ void MX_ETH_Init(void)
 
   heth.Instance = ETH;
   heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
-  heth.Init.PhyAddress = 0; //LAN8742A_PHY_ADDRESS;
+  heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
   heth.Init.MACAddr[0] =   0x00;
   heth.Init.MACAddr[1] =   0x80;
   heth.Init.MACAddr[2] =   0xE1;
@@ -79,6 +79,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* ethHandle)
     PG14     ------> ETH_TXD1
     PG13     ------> ETH_TXD0
     PG11     ------> ETH_TX_EN
+    PG8     ------> ETH_PPS_OUT
     PC1     ------> ETH_MDC
     PA1     ------> ETH_REF_CLK
     PC4     ------> ETH_RXD0
@@ -86,7 +87,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* ethHandle)
     PC5     ------> ETH_RXD1
     PA7     ------> ETH_CRS_DV 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_13|GPIO_PIN_11;
+    GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_13|GPIO_PIN_11|GPIO_PIN_8;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -128,6 +129,7 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* ethHandle)
     PG14     ------> ETH_TXD1
     PG13     ------> ETH_TXD0
     PG11     ------> ETH_TX_EN
+    PG8     ------> ETH_PPS_OUT
     PC1     ------> ETH_MDC
     PA1     ------> ETH_REF_CLK
     PC4     ------> ETH_RXD0
@@ -135,7 +137,7 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* ethHandle)
     PC5     ------> ETH_RXD1
     PA7     ------> ETH_CRS_DV 
     */
-    HAL_GPIO_DeInit(GPIOG, GPIO_PIN_14|GPIO_PIN_13|GPIO_PIN_11);
+    HAL_GPIO_DeInit(GPIOG, GPIO_PIN_14|GPIO_PIN_13|GPIO_PIN_11|GPIO_PIN_8);
 
     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5);
 

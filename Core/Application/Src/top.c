@@ -54,7 +54,8 @@ void TOP_Setup(void)
 	ETH_InitDescriptors();
 	ETH_Start();
 	ERR_InitBlink();
-	TIM_ConnectPTP();
+	//TIM_ConnectPTP();
+
 }
 
 extern UART_HandleTypeDef huart1;
@@ -213,7 +214,7 @@ void PTPInit(void)
 	 SET_BIT(ETH->PTPTSCR, 1<<0);
 
 	 // 3.
-	 ETH->PTPSSIR = 1;
+	 ETH->PTPSSIR = 10;
 
 	 // 4.
 	 // not using Fine correction
