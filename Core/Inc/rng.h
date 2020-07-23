@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : ETH.h
+  * File Name          : RNG.h
   * Description        : This file provides code for the configuration
-  *                      of the ETH instances.
+  *                      of the RNG instances.
   ******************************************************************************
   * @attention
   *
@@ -17,8 +17,8 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __eth_H
-#define __eth_H
+#ifndef __rng_H
+#define __rng_H
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -30,40 +30,22 @@
 
 /* USER CODE END Includes */
 
-extern ETH_HandleTypeDef heth;
+extern RNG_HandleTypeDef hrng;
 
 /* USER CODE BEGIN Private defines */
 
-typedef struct
-{
-
-	uint8_t* destination_address;
-	uint8_t* source_address;
-	//uint8_t* tag;
-	uint8_t* length_type;
-	uint8_t* data;
-
-} Frame;
-
-
 /* USER CODE END Private defines */
 
-void MX_ETH_Init(void);
+void MX_RNG_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void ETH_InitDescriptors(void);
-void ETH_Start(void);
-bool ETH_ReceiveFrame(Frame *frame);
-void ETH_TransmitFrame(Frame *frame, size_t length, uint32_t *high_value, uint32_t *low_value);
-void ETH_PutInTxBuffer(uint8_t *data, size_t length, uint32_t offset, uint32_t bufferaddress); // TODO to reconsider this function and whole idea of buffers encapsulation
-void ETH_GetMACAddress(uint8_t *address);
 
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ eth_H */
+#endif /*__ rng_H */
 
 /**
   * @}

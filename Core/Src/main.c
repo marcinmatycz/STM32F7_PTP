@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "eth.h"
+#include "rng.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -99,6 +100,7 @@ int main(void)
   MX_GPIO_Init();
   MX_ETH_Init();
   MX_USART1_UART_Init();
+  MX_RNG_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   TOP_Setup();
@@ -143,7 +145,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 25;
   RCC_OscInitStruct.PLL.PLLN = 432;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLQ = 12;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -167,8 +169,9 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_CLK48;
   PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
+  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLL;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();

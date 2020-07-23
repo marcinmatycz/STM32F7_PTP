@@ -95,7 +95,9 @@ void ARP_Respond(Frame *frame)
 
 	frame_to_send.data = &to_send[14];
 
-	ETH_TransmitFrame(&frame_to_send, 42);
+	// FIXME dummy
+	uint32_t dummy;
+	ETH_TransmitFrame(&frame_to_send, 42, &dummy, &dummy);
 }
 
 /*****************************************************************************

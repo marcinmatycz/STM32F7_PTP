@@ -156,8 +156,9 @@ void IP_SendEchoReply(Frame *frame, IPFrame *ipframe)
 	}
 
 
-
-	ETH_TransmitFrame(&frame_to_send, totallength+14);
+	// FIXME dummy
+	uint32_t dummy;
+	ETH_TransmitFrame(&frame_to_send, totallength+14, &dummy, &dummy);
 
 }
 

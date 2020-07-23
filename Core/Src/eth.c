@@ -38,7 +38,7 @@ void MX_ETH_Init(void)
 
   heth.Instance = ETH;
   heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
-  heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
+  heth.Init.PhyAddress = 0; //LAN8742A_PHY_ADDRESS;
   heth.Init.MACAddr[0] =   0x00;
   heth.Init.MACAddr[1] =   0x80;
   heth.Init.MACAddr[2] =   0xE1;
@@ -202,27 +202,37 @@ bool ETH_ReceiveFrame(Frame *frame)
 
 
 
-HAL_StatusTypeDef ETH_TransmitFrame(Frame *frame, size_t length)
+void ETH_TransmitFrame(Frame *frame, size_t length, uint32_t *high_value, uint32_t *low_value)
 {
 
+	ETH_DMADescTypeDef *current_desc = heth.TxDesc;
+
+	SET_BIT(current_desc->Status, 1<<25);
+
+	ETH_PutInTxBuffer(frame->destination_address, 6, 0, current_desc->Buffer1Addr);
+	ETH_PutInTxBuffer(frame->source_address, 6, 6, current_desc->Buffer1Addr);
+	ETH_PutInTxBuffer(frame->length_type, 2, 12, current_desc->Buffer1Addr);
+	ETH_PutInTxBuffer(frame->data, (length - 6 - 6 - 2), 14, current_desc->Buffer1Addr);
 
 
-	ETH_PutInTxBuffer(frame->destination_address, 6, 0);
-	ETH_PutInTxBuffer(frame->source_address, 6, 6);
-	ETH_PutInTxBuffer(frame->length_type, 2, 12);
-	ETH_PutInTxBuffer(frame->data, (length - 6 - 6 - 2), 14);
-
-
-	while((heth.TxDesc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET);
+	while((current_desc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET);
 
 	HAL_ETH_TransmitFrame(&heth, length);
+
+	while((current_desc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET);
+	while((current_desc->Status & ETH_DMATXDESC_TTSS) == (uint32_t)RESET );
+
+	*high_value = current_desc->TimeStampHigh;
+	*low_value = current_desc->TimeStampLow;
+
 }
 
-
-void ETH_PutInTxBuffer(uint8_t *data, size_t length, uint32_t offset)
+//TODO funkcja do usunięcia?
+void ETH_PutInTxBuffer(uint8_t *data, size_t length, uint32_t offset, uint32_t bufferaddress)
 {
+	uint32_t *ptr = bufferaddress;
 	for(int i = offset; i < length + offset; i++)
-		Tx_Buff[0][i] = data[i-offset];
+		ptr[i] = data[i-offset];
 }
 
 void ETH_GetMACAddress(uint8_t *address)

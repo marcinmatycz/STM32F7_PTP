@@ -22,6 +22,7 @@
 #include "ipv4.h"
 #include "error_blinks.h"
 #include "tim.h"
+#include "rng.h"
 #include <string.h>
 #include <stdio.h>
 /*****************************************************************************
@@ -32,8 +33,8 @@
                       PRIVATE STRUCTS / ENUMS / VARIABLES
  *****************************************************************************/
 bool transmit_flag = 0;
-
-
+__IO uint32_t aRandom32bit;
+extern RNG_HandleTypeDef hrng;
 /*****************************************************************************
                         PRIVATE FUNCTION DECLARATION
  *****************************************************************************/
@@ -50,10 +51,12 @@ void PTPInit(void);
 
 void TOP_Setup(void)
 {
+
 	PTPInit();
 	ETH_InitDescriptors();
 	ETH_Start();
 	ERR_InitBlink();
+
 	//TIM_ConnectPTP();
 
 }
@@ -61,10 +64,6 @@ void TOP_Setup(void)
 extern UART_HandleTypeDef huart1;
 void TOP_Loop(void)
 {
-	uint32_t low_value;
-	uint32_t high_value;
-	char s[11] = {0};
-
 
 	while(1)
 	{
@@ -78,11 +77,6 @@ void TOP_Loop(void)
 			transmit_flag = 0;
 		}
 
-		HAL_Delay(1000);
-		low_value = ETH->PTPTSLR;
-		snprintf(s, 11, "%d", low_value);
-		HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
-		HAL_UART_Transmit(&huart1, "\r\n", strlen("\r\n"), 1000);
 	}
 }
 
@@ -161,8 +155,15 @@ void TOP_PollForEthernetFrame(void)
 }
 
 
+extern ETH_DMADescTypeDef DMATxDscrTab[];
+
 void SendTestFrame(void)
 {
+	uint32_t low_value;
+	uint32_t high_value;
+	char s[11] = {0};
+
+
 	Frame frame_to_send = {0};
 	uint8_t to_send[21];
 	uint8_t mac_address[6];
@@ -203,11 +204,37 @@ void SendTestFrame(void)
 
 	frame_to_send.data = &to_send[14];
 
-	ETH_TransmitFrame(&frame_to_send, 21);
+
+	high_value = ETH->PTPTSHR;
+	snprintf(s, 11, "%d", high_value);
+	HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
+	HAL_UART_Transmit(&huart1, "::", strlen("::"), 1000);
+
+	low_value = ETH->PTPTSLR;
+	snprintf(s, 11, "%d", low_value);
+	HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
+	HAL_UART_Transmit(&huart1, "\r\n", strlen("\r\n"), 1000);
+
+	ETH_TransmitFrame(&frame_to_send, 21, &high_value, &low_value);
+
+
+	snprintf(s, 11, "%d", high_value);
+	HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
+	HAL_UART_Transmit(&huart1, "::", strlen("::"), 1000);
+
+	snprintf(s, 11, "%d", low_value);
+	HAL_UART_Transmit(&huart1, s, strlen(s), 1000);
+	HAL_UART_Transmit(&huart1, "\r\n", strlen("\r\n"), 1000);
+	HAL_UART_Transmit(&huart1, "\r\n", strlen("\r\n"), 1000);
+
+
 }
 
 void PTPInit(void)
 {
+    aRandom32bit = HAL_RNG_GetRandomNumber(&hrng);
+
+
 	 // 1.
 	 SET_BIT(ETH->MACIMR, 1<<9);
 	 // 2.
@@ -226,7 +253,8 @@ void PTPInit(void)
 	 // not using Fine correction
 
 	 // 7.
-	 // no starting value
+	 ETH->PTPTSLUR = aRandom32bit;
+
 
 	 // 8.
 	 while (READ_BIT(ETH->PTPTSCR, 1<<2) != 0);
